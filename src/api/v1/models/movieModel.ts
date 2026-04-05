@@ -4,5 +4,5 @@ export interface Movie {
     genre: string;
     releaseYear: number;
     description: string;
-    createdAt?: Date
+    createdAt?: String;
 }

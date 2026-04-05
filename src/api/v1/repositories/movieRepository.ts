@@ -3,17 +3,21 @@ import { Movie } from "../models/movieModel";
 
 const collectionName = "movies";
 
-export const movieRepository = {
-    async getAll(): Promise<Movie[]> {
+export const getAllMovies = async (): Promise<Movie[]> => {
+    try {
         const snapshot = await db.collection(collectionName).get();
 
         return snapshot.docs.map((doc) => ({
             id: doc.id,
             ...(doc.data() as Omit<Movie, "id">),
         }));
-    },
+    } catch (error: unknown) {
+        throw error;
+    }
+};
 
-    async getById(id: string): Promise<Movie | null> {
+export const getMovieById = async (id: string): Promise<Movie | null> => {
+    try {
         const doc = await db.collection(collectionName).doc(id).get();
 
         if (!doc.exists) {
@@ -24,52 +28,37 @@ export const movieRepository = {
             id: doc.id,
             ...(doc.data() as Omit<Movie, "id">),
         };
-    },
+    } catch (error: unknown) {
+        throw error;
+    }
+};
 
-    async create(movieData: Omit<Movie, "id" | "createdAt">): Promise<Movie> {
-        const newMovie = {
-            ...movieData,
-            createdAt: new Date(),
-        };
+export const createMovie = async (
+    movieData: Omit<Movie, "id">
+): Promise<string> => {
+    try {
+        const docRef = await db.collection(collectionName).add(movieData);
+        return docRef.id;
+    } catch (error: unknown) {
+        throw error;
+    }
+};
 
-        const docRef = await db.collection(collectionName).add(newMovie);
+export const updateMovie = async (
+    id: string,
+    updateData: Partial<Movie>
+): Promise<void> => {
+    try {
+        await db.collection(collectionName).doc(id).update(updateData);
+    } catch (error: unknown) {
+        throw error;
+    }
+};
 
-        return {
-            id: docRef.id,
-            ...newMovie,
-        };
-    },
-
-    async update(
-        id: string,
-        movieData: Partial<Omit<Movie, "id" | "createdAt">>
-    ): Promise<Movie | null> {
-        const docRef = db.collection(collectionName).doc(id);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-            return null;
-        }
-
-        await docRef.update(movieData);
-
-        const updatedDoc = await docRef.get();
-
-        return {
-            id: updatedDoc.id,
-            ...(updatedDoc.data() as Omit<Movie, "id">),
-        };
-    },
-
-    async delete(id: string): Promise<boolean> {
-        const docRef = db.collection(collectionName).doc(id);
-        const doc = await docRef.get();
-
-        if (!doc.exists) {
-            return false;
-        }
-
-        await docRef.delete();
-        return true;
-    },
+export const deleteMovie = async (id: string): Promise<void> => {
+    try {
+        await db.collection(collectionName).doc(id).delete();
+    } catch (error: unknown) {
+        throw error;
+    }
 };
