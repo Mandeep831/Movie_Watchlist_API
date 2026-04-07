@@ -4,4 +4,5 @@ export default interface Watchlist {
     movieId: string;
     status: string;
     createdAt?: Date;
+    updateAt?: Date;
 }
