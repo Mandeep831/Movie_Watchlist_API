@@ -1,8 +1,8 @@
 import request from "supertest";
-import app from "../../src/app";
-import * as watchlistService from "../../src/api/v1/services/watchlistService";
+import app from "../src/app";
+import * as watchlistService from "../src/api/v1/services/watchlistService";
 
-jest.mock("../../src/api/v1/services/watchlistService");
+jest.mock("../src/api/v1/services/watchlistService");
 
 describe("Watchlist Routes", () => {
     afterEach(() => {

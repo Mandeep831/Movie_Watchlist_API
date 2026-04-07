@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../../src/app";
+import app from "../src/app";
 
 describe("Health Route", () => {
     it("should return API running message", async () => {
