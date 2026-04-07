@@ -29,6 +29,19 @@ describe("Watchlist Routes", () => {
         expect(response.body.data.length).toBe(1);
     });
 
+    it("should return empty array when no watchlists exist", async () => {
+        // Arrange
+        (watchlistService.getAllWatchlists as jest.Mock).mockResolvedValue([]);
+
+        // Act
+        const response = await request(app).get("/api/v1/watchlists");
+
+        // Assert
+        expect(response.status).toBe(200);
+        expect(response.body.message).toBe("Watchlists fetched successfully");
+        expect(response.body.data).toEqual([]);
+    });
+
     it("should create a watchlist", async () => {
         // Arrange
         const body = {
@@ -85,6 +98,35 @@ describe("Watchlist Routes", () => {
         expect(response.body.message).toBe("Watchlist updated successfully");
     });
 
+    it("should return 404 when updating a watchlist that does not exist", async () => {
+        // Arrange
+        (watchlistService.updateWatchlist as jest.Mock).mockResolvedValue(null);
+
+        // Act
+        const response = await request(app)
+            .put("/api/v1/watchlists/999")
+            .send({ status: "watched" });
+
+        // Assert
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe("Watchlist not found");
+    });
+
+    it("should return 400 when update input is invalid", async () => {
+        // Arrange
+        const body = {
+            status: 123,
+        };
+
+        // Act
+        const response = await request(app)
+            .put("/api/v1/watchlists/1")
+            .send(body);
+
+        // Assert
+        expect(response.status).toBe(400);
+    });
+
     it("should delete a watchlist", async () => {
         // Arrange
         (watchlistService.deleteWatchlist as jest.Mock).mockResolvedValue(true);
@@ -96,5 +138,18 @@ describe("Watchlist Routes", () => {
         // Assert
         expect(response.status).toBe(200);
         expect(response.body.message).toBe("Watchlist deleted successfully");
+    });
+
+    it("should return 404 when deleting a watchlist that does not exist", async () => {
+        // Arrange
+        (watchlistService.deleteWatchlist as jest.Mock).mockResolvedValue(false);
+
+        // Act
+        const response = await request(app)
+            .delete("/api/v1/watchlists/999");
+
+        // Assert
+        expect(response.status).toBe(404);
+        expect(response.body.message).toBe("Watchlist not found");
     });
 });
