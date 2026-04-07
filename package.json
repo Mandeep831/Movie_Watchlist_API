@@ -33,13 +33,5 @@
     "ts-jest": "^29.4.9",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.4.0"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "roots": ["<rootDir>/tests"],
-    "moduleFileExtensions": ["ts", "js"],
-    "collectCoverage": true,
-    "collectCoverageFrom": ["src/**/*.ts"]
   }
 }
