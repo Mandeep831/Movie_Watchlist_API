@@ -9,6 +9,7 @@ export const createWatchlist = async (watchlist: Watchlist) => {
         movieId: watchlist.movieId,
         status: watchlist.status,
         createdAt: new Date(),
+        updateAt: new Date(),
     };
 
     const docRef = await db.collection(collectionName).add(watchlistData);
@@ -39,7 +40,12 @@ export const updateWatchlist = async (
         return null;
     }
 
-    await docRef.update(watchlist);
+    const updatedData = {
+        ...watchlist,
+        updateAt: new Date(),
+    };
+
+    await docRef.update(updatedData);
 
     const updatedDoc = await docRef.get();
 
