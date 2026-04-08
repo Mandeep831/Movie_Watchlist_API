@@ -4,12 +4,14 @@ import Watchlist from "../models/watchlistModel";
 const collectionName = "watchlists";
 
 export const createWatchlist = async (watchlist: Watchlist) => {
+    const now = new Date().toISOString();
+
     const watchlistData = {
         userId: watchlist.userId,
         movieId: watchlist.movieId,
         status: watchlist.status,
-        createdAt: new Date(),
-        updateAt: new Date(),
+        createdAt: now,
+        updateAt: now,
     };
 
     const docRef = await db.collection(collectionName).add(watchlistData);
@@ -42,7 +44,7 @@ export const updateWatchlist = async (
 
     const updatedData = {
         ...watchlist,
-        updateAt: new Date(),
+        updateAt: new Date().toISOString(),
     };
 
     await docRef.update(updatedData);
