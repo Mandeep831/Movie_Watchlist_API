@@ -5,4 +5,5 @@ export interface Movie {
     releaseYear: number;
     description: string;
     createdAt?: String;
+    updatedAt?: String;
 }

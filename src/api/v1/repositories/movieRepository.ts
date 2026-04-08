@@ -35,7 +35,9 @@ export const getMovieById = async (
   }
 };
  
-export const createMovie = async (movieData: Movie): Promise<string> => {
+export const createMovie = async (
+  movieData: Omit<Movie, "id">
+): Promise<string> => {
   try {
     const docRef = await db.collection(collectionName).add(movieData);
     return docRef.id;
