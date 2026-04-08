@@ -1,4 +1,4 @@
-import Joi from "joi";
+import * as Joi from "joi";
 
 export const createReviewSchema = Joi.object({
   movieId: Joi.string().required(),

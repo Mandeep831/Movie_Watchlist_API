@@ -4,9 +4,12 @@ import { Review } from "../models/reviewModel";
 const reviewCollection = db.collection("reviews");
 
 export const createReview = async (review: Review): Promise<Review> => {
-  const reviewData = {
+  const now = new Date().toISOString();
+
+  const reviewData: Review = {
     ...review,
-    createdAt: new Date(),
+    createdAt: now,
+    updatedAt: now,
   };
 
   const docRef = await reviewCollection.add(reviewData);
@@ -50,7 +53,11 @@ export const updateReview = async (
     return false;
   }
 
-  await docRef.update(review);
+  await docRef.update({
+    ...review,
+    updatedAt: new Date().toISOString(),
+  });
+
   return true;
 };
 

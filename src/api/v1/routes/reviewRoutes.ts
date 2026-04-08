@@ -71,6 +71,16 @@ router.get("/:id", reviewController.getReviewById);
  *                 maximum: 5
  *               comment:
  *                 type: string
+ *               createdAt:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2026-04-08T10:30:00.000Z"
+ *                 readOnly: true
+ *               updatedAt:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2026-04-08T10:30:00.000Z"
+ *                 readOnly: true
  *     responses:
  *       201:
  *         description: Review created successfully
@@ -107,6 +117,11 @@ router.post("/", validateRequest(createReviewSchema), reviewController.createRev
  *                 type: number
  *               comment:
  *                 type: string
+ *               updatedAt:
+ *                 type: string
+ *                 format: date-time
+ *                 example: "2026-04-08T10:30:00.000Z"
+ *                 readOnly: true
  *     responses:
  *       200:
  *         description: Review updated successfully
