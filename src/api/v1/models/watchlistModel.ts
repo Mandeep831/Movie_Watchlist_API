@@ -3,6 +3,6 @@ export default interface Watchlist {
     userId: string;
     movieId: string;
     status: string;
-    createdAt?: Date;
-    updateAt?: Date;
+    createdAt?: string;
+    updateAt?: string;
 }
