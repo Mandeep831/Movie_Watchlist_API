@@ -1,5 +1,3 @@
-/// <reference types="jest" />
-
 import request from "supertest";
 import app from "../src/app";
 import * as reviewRepository from "../src/api/v1/repositories/reviewRepository";
