@@ -1,8 +1,21 @@
 import { Request, Response } from "express";
 import * as watchlistService from "../services/watchlistService";
+import { sendEmail } from "../services/emailService";
 
 export const createWatchlist = async (req: Request, res: Response) => {
     const watchlist = await watchlistService.createWatchlist(req.body);
+
+    // send email
+    try {
+        await sendEmail(
+            "yourgmail@gmail.com",
+            "Watchlist Created",
+            "Your watchlist was created successfully."
+        );
+    } catch (error) {
+
+        console.error("Email failed:", error);
+    }
 
     res.status(201).json({
         message: "Watchlist created successfully",
@@ -30,6 +43,18 @@ export const updateWatchlist = async (req: Request, res: Response) => {
             message: "Watchlist not found",
         });
         return;
+    }
+
+    // send email after successful update
+    try {
+        await sendEmail(
+            "yourgmail@gmail.com",
+            "Watchlist Created",
+            "Your watchlist was created successfully."
+        );
+    } catch (error) {
+
+        console.error("Email failed:", error);
     }
 
     res.status(200).json({
