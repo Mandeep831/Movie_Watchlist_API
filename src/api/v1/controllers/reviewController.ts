@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import * as reviewService from "../services/reviewService";
+import { sendEmail } from "../services/emailService";
 
 export const createReview = async (
   req: Request,
@@ -8,6 +9,17 @@ export const createReview = async (
 ): Promise<void> => {
   try {
     const review = await reviewService.createReview(req.body);
+
+    // send email
+    try {
+      await sendEmail(
+        "test@example.com",
+        "Review Added",
+        "Your review was added successfully."
+      );
+    } catch (error) {
+      console.error("Email failed:", error);
+    }
 
     res.status(201).json({
       status: "success",
