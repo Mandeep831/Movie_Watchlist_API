@@ -60,7 +60,7 @@ export const updateMovie = async (req: Request, res: Response) => {
         // send email after update
         try {
             await sendEmail(
-                "youremail@gmail.com",
+                "test@example.com",
                 "Movie Updated",
                 "A new movie movie was added successfully."
             );

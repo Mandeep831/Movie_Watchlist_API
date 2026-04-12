@@ -48,7 +48,7 @@ export const updateWatchlist = async (req: Request, res: Response) => {
     // send email after successful update
     try {
         await sendEmail(
-            "yourgmail@gmail.com",
+            "test@example.com",
             "Watchlist Created",
             "Your watchlist was created successfully."
         );
