@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import * as movieService from "../services/movieService";
+import { sendEmail } from "../services/emailService";
 
 export const getAllMovies = async (req: Request, res: Response) => {
     try {
@@ -32,6 +33,17 @@ export const createMovie = async (req: Request, res: Response) => {
 
         const newMovie = await movieService.createMovie(movieData);
 
+        // send email after creation
+        try {
+            await sendEmail(
+                "youremail@gmail.com",
+                "Movie Added",
+                "A new movie movie was added successfully."
+            );
+        } catch (error) {
+            console.error("Email failed:", error)
+        }
+
         res.status(201).json(newMovie);
     } catch (error: unknown) {
         res.status(500).json({ message: "Failed to create movie" });
@@ -44,6 +56,17 @@ export const updateMovie = async (req: Request, res: Response) => {
         const updateData = req.body;
 
         const updatedMovie = await movieService.updateMovie(id, updateData);
+
+        // send email after update
+        try {
+            await sendEmail(
+                "youremail@gmail.com",
+                "Movie Updated",
+                "A new movie movie was added successfully."
+            );
+        } catch (error) {
+            console.error("Email failed:", error)
+        }
 
         if (!updatedMovie) {
             return res.status(404).json({ message: "Movie not found" });

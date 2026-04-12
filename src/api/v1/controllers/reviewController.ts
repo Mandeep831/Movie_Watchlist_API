@@ -90,6 +90,17 @@ export const updateReview = async (
       return;
     }
 
+    // send email
+    try {
+      await sendEmail(
+        "test@example.com",
+        "Review Added",
+        "Your review was added successfully."
+      );
+    } catch (error) {
+      console.error("Email failed:", error);
+    }
+
     res.status(200).json({
       status: "success",
       message: "Review updated successfully",
