@@ -1,6 +1,7 @@
 import express from "express";
 import * as controller from "../controllers/watchlistController";
 import { validateRequest } from "../middleware/validate";
+import { authenticate } from "../middleware/authMiddleware";
 import {
   createWatchlistSchema,
   updateWatchlistSchema,
@@ -18,7 +19,7 @@ const router = express.Router();
  *       200:
  *         description: Watchlists fetched successfully
  */
-router.get("/", controller.getAllWatchlists);
+router.get("/", authenticate, controller.getAllWatchlists);
  
 /**
  * @swagger
@@ -42,6 +43,7 @@ router.get("/", controller.getAllWatchlists);
  */
 router.post(
   "/",
+  authenticate, 
   validateRequest(createWatchlistSchema),
   controller.createWatchlist
 );
@@ -76,7 +78,8 @@ router.post(
  */
 router.put(
   "/:id",
-  validateRequest(updateWatchlistSchema),
+  authenticate,
+  validateRequest(updateWatchlistSchema), 
   controller.updateWatchlist
 );
  
@@ -98,7 +101,7 @@ router.put(
  *       404:
  *         description: Watchlist not found
  */
-router.delete("/:id", controller.deleteWatchlist);
+router.delete("/:id", authenticate, controller.deleteWatchlist);
  
 export default router;
  
