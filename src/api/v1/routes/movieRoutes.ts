@@ -1,6 +1,14 @@
 import { Router } from "express";
 import * as movieController from "../controllers/movieController";
- 
+import { authenticate } from "../middleware/authMiddleware";
+import { authorize } from "../middleware/roleMiddleware"; 
+import { validateRequest } from "../middleware/validate";
+import {
+  createMovieSchema,
+  updateMovieSchema,
+  movieIdSchema,
+} from "../validations/movieValidation";
+
 const router = Router();
  
 /**
@@ -31,7 +39,11 @@ router.get("/", movieController.getAllMovies);
  *       200:
  *         description: Movie fetched successfully
  */
-router.get("/:id", movieController.getMovieById);
+router.get(
+  "/:id",
+  validateRequest(createMovieSchema),
+  movieController.getMovieById
+);
  
 /**
  * @swagger
@@ -43,8 +55,12 @@ router.get("/:id", movieController.getMovieById);
  *       201:
  *         description: Movie created successfully
  */
-router.post("/", movieController.createMovie);
- 
+router.post(
+  "/",
+  authenticate,
+  validateRequest(createMovieSchema),
+  movieController.createMovie
+);
 /**
  * @swagger
  * /movies/{id}:
@@ -61,7 +77,12 @@ router.post("/", movieController.createMovie);
  *       200:
  *         description: Movie updated successfully
  */
-router.put("/:id", movieController.updateMovie);
+router.put(
+  "/:id",
+  authenticate,
+  validateRequest(updateMovieSchema),
+  movieController.updateMovie
+);
  
 /**
  * @swagger
@@ -79,6 +100,10 @@ router.put("/:id", movieController.updateMovie);
  *       200:
  *         description: Movie deleted successfully
  */
-router.delete("/:id", movieController.deleteMovie);
+router.delete(
+  "/:id",
+  authenticate,
+  movieController.deleteMovie
+);
  
 export default router;
