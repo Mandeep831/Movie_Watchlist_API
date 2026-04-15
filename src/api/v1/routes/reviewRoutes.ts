@@ -1,6 +1,7 @@
 import { Router } from "express";
 import * as reviewController from "../controllers/reviewController";
 import { validateRequest } from "../middleware/validate";
+import { authenticate } from "../middleware/authMiddleware";
 import {
   createReviewSchema,
   updateReviewSchema,
@@ -87,7 +88,7 @@ router.get("/:id", reviewController.getReviewById);
  *       400:
  *         description: Validation error
  */
-router.post("/", validateRequest(createReviewSchema), reviewController.createReview);
+router.post("/", validateRequest(createReviewSchema), authenticate, reviewController.createReview);
 
 /**
  * @openapi
@@ -128,7 +129,7 @@ router.post("/", validateRequest(createReviewSchema), reviewController.createRev
  *       404:
  *         description: Review not found
  */
-router.put("/:id", validateRequest(updateReviewSchema), reviewController.updateReview);
+router.put("/:id",  validateRequest(updateReviewSchema), authenticate, reviewController.updateReview);
 
 /**
  * @openapi
@@ -149,6 +150,6 @@ router.put("/:id", validateRequest(updateReviewSchema), reviewController.updateR
  *       404:
  *         description: Review not found
  */
-router.delete("/:id", reviewController.deleteReview);
+router.delete("/:id", authenticate, reviewController.deleteReview);
 
 export default router;
