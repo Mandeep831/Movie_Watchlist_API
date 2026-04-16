@@ -1,6 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
+import dotenv from "dotenv";
+
+dotenv.config();
  
 // Swagger setup
 import setupSwagger from "./config/swagger";
