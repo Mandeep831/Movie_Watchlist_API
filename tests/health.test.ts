@@ -1,3 +1,7 @@
+jest.mock("../src/api/v1/services/emailService", () => ({
+    sendEmail: jest.fn().mockResolvedValue(undefined),
+}));
+ 
 import request from "supertest";
 import app from "../src/app";
 
