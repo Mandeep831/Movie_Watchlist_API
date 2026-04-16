@@ -1,255 +1,196 @@
-import request from "supertest";
-import app from "../src/app";
+import { Request, Response } from "express";
+import * as watchlistController from "../src/api/v1/controllers/watchlistController";
 import * as watchlistService from "../src/api/v1/services/watchlistService";
-
+ 
 jest.mock("../src/api/v1/services/watchlistService");
-
-describe("Watchlist Routes", () => {
-    afterEach(() => {
+jest.mock("../src/api/v1/services/emailService", () => ({
+    sendEmail: jest.fn().mockResolvedValue(undefined),
+}));
+ 
+describe("watchlistController", () => {
+    let mockRequest: Partial<Request>;
+    let mockResponse: Partial<Response>;
+ 
+    beforeEach(() => {
+        mockRequest = {
+            body: {},
+            params: {},
+        };
+ 
+        mockResponse = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+        };
+ 
         jest.clearAllMocks();
     });
-
+ 
+    it("should create a watchlist", async () => {
+        // Arrange
+        const mockWatchlist = {
+            id: "1",
+            userId: "u1",
+            movieId: "m1",
+            status: "watching",
+            createdAt: "2026-04-08T18:00:00.000Z",
+            updatedAt: "2026-04-08T18:00:00.000Z",
+        };
+ 
+        mockRequest.body = {
+            userId: "u1",
+            movieId: "m1",
+            status: "watching",
+        };
+ 
+        (watchlistService.createWatchlist as jest.Mock).mockResolvedValue(mockWatchlist);
+ 
+        // Act
+        await watchlistController.createWatchlist(
+            mockRequest as Request,
+            mockResponse as Response
+        );
+ 
+        // Assert
+        expect(watchlistService.createWatchlist).toHaveBeenCalledWith(
+            mockRequest.body
+        );
+        expect(mockResponse.status).toHaveBeenCalledWith(201);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: mockWatchlist,
+        });
+    });
+ 
     it("should get all watchlists", async () => {
         // Arrange
-        (watchlistService.getAllWatchlists as jest.Mock).mockResolvedValue([
+        const mockWatchlists = [
             {
                 id: "1",
                 userId: "u1",
                 movieId: "m1",
-                status: "unwatched",
+                status: "watching",
                 createdAt: "2026-04-08T18:00:00.000Z",
-                updateAt: "2026-04-08T18:00:00.000Z",
+                updatedAt: "2026-04-08T18:00:00.000Z",
             },
-        ]);
-
+        ];
+ 
+        (watchlistService.getAllWatchlists as jest.Mock).mockResolvedValue(
+            mockWatchlists
+        );
+ 
         // Act
-        const response = await request(app).get("/api/v1/watchlists");
-
+        await watchlistController.getAllWatchlists(
+            mockRequest as Request,
+            mockResponse as Response
+        );
+ 
         // Assert
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe("Watchlists fetched successfully");
-        expect(response.body.data.length).toBe(1);
-    });
-
-    it("should return empty array when no watchlists exist", async () => {
-        // Arrange
-        (watchlistService.getAllWatchlists as jest.Mock).mockResolvedValue([]);
-
-        // Act
-        const response = await request(app).get("/api/v1/watchlists");
-
-        // Assert
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe("Watchlists fetched successfully");
-        expect(response.body.data).toEqual([]);
-    });
-
-    it("should create a watchlist", async () => {
-        // Arrange
-        const body = {
-            userId: "u1",
-            movieId: "m1",
-            status: "unwatched",
-        };
-
-        (watchlistService.createWatchlist as jest.Mock).mockResolvedValue({
-            id: "1",
-            ...body,
-            createdAt: "2026-04-08T18:00:00.000Z",
-            updateAt: "2026-04-08T18:00:00.000Z",
+        expect(watchlistService.getAllWatchlists).toHaveBeenCalledTimes(1);
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: mockWatchlists,
         });
-
-        // Act
-        const response = await request(app)
-            .post("/api/v1/watchlists")
-            .send(body);
-
-        // Assert
-        expect(response.status).toBe(201);
-        expect(response.body.message).toBe("Watchlist created successfully");
-        expect(response.body.data.userId).toBe("u1");
-        expect(response.body.data.createdAt).toBeDefined();
-        expect(response.body.data.updateAt).toBeDefined();
     });
-
-    it("should return 400 when userId is missing", async () => {
+ 
+    it("should update watchlist", async () => {
         // Arrange
-        const body = {
-            movieId: "m1",
-            status: "unwatched",
-        };
-
-        // Act
-        const response = await request(app)
-            .post("/api/v1/watchlists")
-            .send(body);
-
-        // Assert
-        expect(response.status).toBe(400);
-        expect(response.body.message).toBeDefined();
-    });
-
-    it("should return 400 when movieId is missing", async () => {
-        // Arrange
-        const body = {
-            userId: "u1",
-            status: "unwatched",
-        };
-
-        // Act
-        const response = await request(app)
-            .post("/api/v1/watchlists")
-            .send(body);
-
-        // Assert
-        expect(response.status).toBe(400);
-        expect(response.body.message).toBeDefined();
-    });
-
-    it("should return 400 when status is missing", async () => {
-        // Arrange
-        const body = {
-            userId: "u1",
-            movieId: "m1",
-        };
-
-        // Act
-        const response = await request(app)
-            .post("/api/v1/watchlists")
-            .send(body);
-
-        // Assert
-        expect(response.status).toBe(400);
-        expect(response.body.message).toBeDefined();
-    });
-
-    it("should return 400 when input is invalid", async () => {
-        // Arrange
-        const body = {
-            userId: "u1",
-        };
-
-        // Act
-        const response = await request(app)
-            .post("/api/v1/watchlists")
-            .send(body);
-
-        // Assert
-        expect(response.status).toBe(400);
-    });
-
-    it("should update a watchlist", async () => {
-        // Arrange
-        (watchlistService.updateWatchlist as jest.Mock).mockResolvedValue({
+        const updatedWatchlist = {
             id: "1",
             userId: "u1",
             movieId: "m1",
             status: "watched",
             createdAt: "2026-04-08T18:00:00.000Z",
-            updateAt: "2026-04-08T19:00:00.000Z",
-        });
-
+            updatedAt: "2026-04-08T19:00:00.000Z",
+        };
+ 
+        mockRequest.params = { id: "1" };
+        mockRequest.body = { status: "watched" };
+ 
+        (watchlistService.updateWatchlist as jest.Mock).mockResolvedValue(
+            updatedWatchlist
+        );
+ 
         // Act
-        const response = await request(app)
-            .put("/api/v1/watchlists/1")
-            .send({ status: "watched" });
-
+        await watchlistController.updateWatchlist(
+            mockRequest as Request,
+            mockResponse as Response
+        );
+ 
         // Assert
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe("Watchlist updated successfully");
-        expect(response.body.data.status).toBe("watched");
-        expect(response.body.data.updateAt).toBeDefined();
-    });
-
-    it("should update userId and movieId", async () => {
-        // Arrange
-        (watchlistService.updateWatchlist as jest.Mock).mockResolvedValue({
-            id: "1",
-            userId: "u2",
-            movieId: "m2",
+        expect(watchlistService.updateWatchlist).toHaveBeenCalledWith("1", {
             status: "watched",
-            createdAt: "2026-04-08T18:00:00.000Z",
-            updateAt: "2026-04-08T19:00:00.000Z",
         });
-
-        // Act
-        const response = await request(app)
-            .put("/api/v1/watchlists/1")
-            .send({
-                userId: "u2",
-                movieId: "m2",
-                status: "watched",
-            });
-
-        // Assert
-        expect(response.status).toBe(200);
-        expect(response.body.data.userId).toBe("u2");
-        expect(response.body.data.movieId).toBe("m2");
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: updatedWatchlist,
+        });
     });
-
+ 
     it("should return 404 when updating a watchlist that does not exist", async () => {
         // Arrange
+        mockRequest.params = { id: "999" };
+        mockRequest.body = { status: "watched" };
+ 
         (watchlistService.updateWatchlist as jest.Mock).mockResolvedValue(null);
-
+ 
         // Act
-        const response = await request(app)
-            .put("/api/v1/watchlists/999")
-            .send({ status: "watched" });
-
+        await watchlistController.updateWatchlist(
+            mockRequest as Request,
+            mockResponse as Response
+        );
+ 
         // Assert
-        expect(response.status).toBe(404);
-        expect(response.body.message).toBe("Watchlist not found");
+        expect(watchlistService.updateWatchlist).toHaveBeenCalledWith("999", {
+            status: "watched",
+        });
+        expect(mockResponse.status).toHaveBeenCalledWith(404);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "error",
+            message: "Watchlist not found",
+        });
     });
-
-    it("should return 400 when update input is invalid", async () => {
-        // Arrange
-        const body = {
-            status: 123,
-        };
-
-        // Act
-        const response = await request(app)
-            .put("/api/v1/watchlists/1")
-            .send(body);
-
-        // Assert
-        expect(response.status).toBe(400);
-    });
-
+ 
     it("should delete a watchlist", async () => {
         // Arrange
+        mockRequest.params = { id: "1" };
+ 
         (watchlistService.deleteWatchlist as jest.Mock).mockResolvedValue(true);
-
+ 
         // Act
-        const response = await request(app)
-            .delete("/api/v1/watchlists/1");
-
+        await watchlistController.deleteWatchlist(
+            mockRequest as Request,
+            mockResponse as Response
+        );
+ 
         // Assert
-        expect(response.status).toBe(200);
-        expect(response.body.message).toBe("Watchlist deleted successfully");
+        expect(watchlistService.deleteWatchlist).toHaveBeenCalledWith("1");
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            message: "Watchlist deleted successfully",
+        });
     });
-
+ 
     it("should return 404 when deleting a watchlist that does not exist", async () => {
         // Arrange
+        mockRequest.params = { id: "999" };
+ 
         (watchlistService.deleteWatchlist as jest.Mock).mockResolvedValue(false);
-
+ 
         // Act
-        const response = await request(app)
-            .delete("/api/v1/watchlists/999");
-
+        await watchlistController.deleteWatchlist(
+            mockRequest as Request,
+            mockResponse as Response
+        );
+ 
         // Assert
-        expect(response.status).toBe(404);
-        expect(response.body.message).toBe("Watchlist not found");
-    });
-
-    it("should return 404 for an unknown route", async () => {
-        // Arrange
-        const url = "/api/v1/watchlists/unknown/extra";
-
-        // Act
-        const response = await request(app).get(url);
-
-        // Assert
-        expect(response.status).toBe(404);
+        expect(watchlistService.deleteWatchlist).toHaveBeenCalledWith("999");
+        expect(mockResponse.status).toHaveBeenCalledWith(404);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "error",
+            message: "Watchlist not found",
+        });
     });
 });

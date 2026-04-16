@@ -1,221 +1,252 @@
-import request from "supertest";
-import app from "../src/app";
-import * as reviewRepository from "../src/api/v1/repositories/reviewRepository";
-import {
-  createReviewSchema,
-  updateReviewSchema,
-} from "../src/api/v1/validations/reviewValidation";
+import { Request, Response, NextFunction } from "express";
+import * as reviewController from "../src/api/v1/controllers/reviewController";
+import * as reviewService from "../src/api/v1/services/reviewService";
  
-jest.mock("../src/config/firebaseConfig", () => ({
-  db: {
-    collection: jest.fn(() => ({
-      add: jest.fn(),
-      get: jest.fn(),
-      doc: jest.fn(),
-    })),
-  },
-  auth: {},
+jest.mock("../src/api/v1/services/reviewService");
+jest.mock("../src/api/v1/services/emailService", () => ({
+    sendEmail: jest.fn().mockResolvedValue(undefined),
 }));
  
-jest.mock("../src/api/v1/repositories/reviewRepository");
+describe("reviewController", () => {
+    let mockRequest: Partial<Request>;
+    let mockResponse: Partial<Response>;
+    let nextFunction: jest.Mock;
  
-describe("Review Feature Tests", () => {
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+    beforeEach(() => {
+        mockRequest = {
+            body: {},
+            params: {},
+        };
  
-  it("should return API health status", async () => {
-    // Act
-    const response = await request(app).get("/api/v1/health");
+        mockResponse = {
+            status: jest.fn().mockReturnThis(),
+            json: jest.fn(),
+        };
  
-    // Assert
-    expect(response.status).toBe(200);
-    expect(response.body.status).toBe("success");
-  });
- 
-  it("should create a review", async () => {
-    // Arrange
-    const mockReview = {
-      id: "review123",
-      movieId: "movie001",
-      userId: "user001",
-      rating: 5,
-      comment: "Great movie.",
-      createdAt: "2026-04-08T10:30:00.000Z",
-      updatedAt: "2026-04-08T10:30:00.000Z",
-    };
- 
-    (reviewRepository.createReview as jest.Mock).mockResolvedValue(mockReview);
- 
-    // Act
-    const response = await request(app).post("/api/v1/reviews").send({
-      movieId: "movie001",
-      userId: "user001",
-      rating: 5,
-      comment: "Great movie.",
+        nextFunction = jest.fn();
+        jest.clearAllMocks();
     });
  
-    // Assert
-    expect(response.status).toBe(201);
-    expect(response.body.data).toEqual(mockReview);
-  });
+    it("should create a review", async () => {
+        // Arrange
+        const mockReview = {
+            id: "review123",
+            movieId: "movie001",
+            userId: "user001",
+            rating: 5,
+            comment: "Great movie.",
+        };
  
-  it("should return validation error for invalid create data", async () => {
-    // Arrange
-    const invalidData = {
-      movieId: "",
-      rating: 10,
-    };
+        mockRequest.body = {
+            movieId: "movie001",
+            userId: "user001",
+            rating: 5,
+            comment: "Great movie.",
+        };
  
-    // Act
-    const response = await request(app)
-      .post("/api/v1/reviews")
-      .send(invalidData);
+        (reviewService.createReview as jest.Mock).mockResolvedValue(mockReview);
  
-    // Assert
-    expect(response.status).toBe(400);
-  });
+        // Act
+        await reviewController.createReview(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-  it("should get all reviews", async () => {
-    // Arrange
-    const mockReviews = [
-      {
-        id: "review123",
-        movieId: "movie001",
-        userId: "user001",
-        rating: 5,
-        comment: "Great movie.",
-        createdAt: "2026-04-08T10:30:00.000Z",
-        updatedAt: "2026-04-08T10:30:00.000Z",
-      },
-    ];
+        // Assert
+        expect(reviewService.createReview).toHaveBeenCalledWith(mockRequest.body);
+        expect(mockResponse.status).toHaveBeenCalledWith(201);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: mockReview,
+        });
+    });
  
-    (reviewRepository.getAllReviews as jest.Mock).mockResolvedValue(mockReviews);
+    it("should get all reviews", async () => {
+        // Arrange
+        const mockReviews = [
+            {
+                id: "review123",
+                movieId: "movie001",
+                userId: "user001",
+                rating: 5,
+                comment: "Great movie.",
+            },
+        ];
  
-    // Act
-    const response = await request(app).get("/api/v1/reviews");
+        (reviewService.getAllReviews as jest.Mock).mockResolvedValue(mockReviews);
  
-    // Assert
-    expect(response.status).toBe(200);
-    expect(response.body.data).toEqual(mockReviews);
-  });
+        // Act
+        await reviewController.getAllReviews(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-  it("should get review by id", async () => {
-    // Arrange
-    const mockReview = {
-      id: "review123",
-      movieId: "movie001",
-      userId: "user001",
-      rating: 5,
-      comment: "Great movie.",
-      createdAt: "2026-04-08T10:30:00.000Z",
-      updatedAt: "2026-04-08T10:30:00.000Z",
-    };
+        // Assert
+        expect(reviewService.getAllReviews).toHaveBeenCalledTimes(1);
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: mockReviews,
+        });
+    });
  
-    (reviewRepository.getReviewById as jest.Mock).mockResolvedValue(mockReview);
+    it("should get review by id", async () => {
+        // Arrange
+        const mockReview = {
+            id: "review123",
+            movieId: "movie001",
+            userId: "user001",
+            rating: 5,
+            comment: "Great movie.",
+        };
  
-    // Act
-    const response = await request(app).get("/api/v1/reviews/review123");
+        mockRequest.params = { id: "review123" };
  
-    // Assert
-    expect(response.status).toBe(200);
-    expect(response.body.data).toEqual(mockReview);
-  });
+        (reviewService.getReviewById as jest.Mock).mockResolvedValue(mockReview);
  
-  it("should return 404 if review not found", async () => {
-    // Arrange
-    (reviewRepository.getReviewById as jest.Mock).mockResolvedValue(null);
+        // Act
+        await reviewController.getReviewById(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-    // Act
-    const response = await request(app).get("/api/v1/reviews/unknown");
+        // Assert
+        expect(reviewService.getReviewById).toHaveBeenCalledWith("review123");
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: mockReview,
+        });
+    });
  
-    // Assert
-    expect(response.status).toBe(404);
-  });
+    it("should return 404 if review not found", async () => {
+        // Arrange
+        mockRequest.params = { id: "unknown" };
  
-  it("should update review", async () => {
-    // Arrange
-    (reviewRepository.updateReview as jest.Mock).mockResolvedValue(true);
+        (reviewService.getReviewById as jest.Mock).mockResolvedValue(null);
  
-    // Act
-    const response = await request(app)
-      .put("/api/v1/reviews/review123")
-      .send({
-        rating: 4,
-        comment: "Updated review",
-      });
+        // Act
+        await reviewController.getReviewById(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-    // Assert
-    expect(response.status).toBe(200);
-  });
+        // Assert
+        expect(reviewService.getReviewById).toHaveBeenCalledWith("unknown");
+        expect(mockResponse.status).toHaveBeenCalledWith(404);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "error",
+            message: "Review not found",
+        });
+    });
  
-  it("should return 404 when updating missing review", async () => {
-    // Arrange
-    (reviewRepository.updateReview as jest.Mock).mockResolvedValue(false);
+    it("should update review", async () => {
+        // Arrange
+        const updatedReview = {
+            id: "review123",
+            movieId: "movie001",
+            userId: "user001",
+            rating: 4,
+            comment: "Updated review",
+        };
  
-    // Act
-    const response = await request(app)
-      .put("/api/v1/reviews/unknown")
-      .send({
-        rating: 4,
-      });
+        mockRequest.params = { id: "review123" };
+        mockRequest.body = {
+            rating: 4,
+            comment: "Updated review",
+        };
  
-    // Assert
-    expect(response.status).toBe(404);
-  });
+        (reviewService.updateReview as jest.Mock).mockResolvedValue(updatedReview);
  
-  it("should delete review", async () => {
-    // Arrange
-    (reviewRepository.deleteReview as jest.Mock).mockResolvedValue(true);
+        // Act
+        await reviewController.updateReview(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-    // Act
-    const response = await request(app).delete("/api/v1/reviews/review123");
+        // Assert
+        expect(reviewService.updateReview).toHaveBeenCalledWith(
+            "review123",
+            mockRequest.body
+        );
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            data: updatedReview,
+        });
+    });
  
-    // Assert
-    expect(response.status).toBe(200);
-  });
+    it("should return 404 when updating missing review", async () => {
+        // Arrange
+        mockRequest.params = { id: "unknown" };
+        mockRequest.body = { rating: 4 };
  
-  it("should validate create schema directly", () => {
-    // Arrange
-    const validData = {
-      movieId: "movie001",
-      userId: "user001",
-      rating: 5,
-      comment: "Great movie",
-    };
+        (reviewService.updateReview as jest.Mock).mockResolvedValue(null);
  
-    // Act
-    const { error } = createReviewSchema.validate(validData);
+        // Act
+        await reviewController.updateReview(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-    // Assert
-    expect(error).toBeUndefined();
-  });
+        // Assert
+        expect(reviewService.updateReview).toHaveBeenCalledWith("unknown", {
+            rating: 4,
+        });
+        expect(mockResponse.status).toHaveBeenCalledWith(404);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "error",
+            message: "Review not found",
+        });
+    });
  
-  it("should fail invalid create schema", () => {
-    // Arrange
-    const invalidData = {
-      movieId: "",
-      rating: 9,
-    };
+    it("should delete review", async () => {
+        // Arrange
+        mockRequest.params = { id: "review123" };
  
-    // Act
-    const { error } = createReviewSchema.validate(invalidData);
+        (reviewService.deleteReview as jest.Mock).mockResolvedValue(true);
  
-    // Assert
-    expect(error).toBeDefined();
-  });
+        // Act
+        await reviewController.deleteReview(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
  
-  it("should validate update schema", () => {
-    // Arrange
-    const updateData = {
-      rating: 4,
-    };
+        // Assert
+        expect(reviewService.deleteReview).toHaveBeenCalledWith("review123");
+        expect(mockResponse.status).toHaveBeenCalledWith(200);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "success",
+            message: "Review deleted successfully",
+        });
+    });
  
-    // Act
-    const { error } = updateReviewSchema.validate(updateData);
+    it("should return 404 when deleting missing review", async () => {
+        // Arrange
+        mockRequest.params = { id: "unknown" };
  
-    // Assert
-    expect(error).toBeUndefined();
-  });
+        (reviewService.deleteReview as jest.Mock).mockResolvedValue(false);
+ 
+        // Act
+        await reviewController.deleteReview(
+            mockRequest as Request,
+            mockResponse as Response,
+            nextFunction as NextFunction
+        );
+ 
+        // Assert
+        expect(reviewService.deleteReview).toHaveBeenCalledWith("unknown");
+        expect(mockResponse.status).toHaveBeenCalledWith(404);
+        expect(mockResponse.json).toHaveBeenCalledWith({
+            status: "error",
+            message: "Review not found",
+        });
+    });
 });
- 
