@@ -11,7 +11,7 @@ export const createWatchlist = async (watchlist: Watchlist) => {
         movieId: watchlist.movieId,
         status: watchlist.status,
         createdAt: now,
-        updateAt: now,
+        updatedAt: now,
     };
 
     const docRef = await db.collection(collectionName).add(watchlistData);

@@ -50,7 +50,7 @@ export const createMovie = async (req: Request, res: Response) => {
  
         try {
             await sendEmail(
-                "test@example.com",
+                process.env.EMAIL_USER!,
                 "Movie Added",
                 "A new movie was added successfully."
             );
@@ -86,7 +86,7 @@ export const updateMovie = async (req: Request, res: Response) => {
  
         try {
             await sendEmail(
-                "test@example.com",
+                process.env.EMAIL_USER!,
                 "Movie Updated",
                 "A movie was updated successfully."
             );

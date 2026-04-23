@@ -8,7 +8,7 @@ export const createWatchlist = async (req: Request, res: Response) => {
  
         try {
             await sendEmail(
-                "test@example.com",
+                process.env.EMAIL_USER!,
                 "Watchlist Created",
                 "Your watchlist was created successfully."
             );
@@ -61,7 +61,7 @@ export const updateWatchlist = async (req: Request, res: Response) => {
  
         try {
             await sendEmail(
-                "test@example.com",
+                process.env.EMAIL_USER!,
                 "Watchlist Updated",
                 "Your watchlist was updated successfully."
             );
