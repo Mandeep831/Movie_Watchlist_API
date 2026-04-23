@@ -30,12 +30,18 @@ export const createReview = async (
 };
  
 export const getAllReviews = async (
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
     try {
-        const reviews = await reviewService.getAllReviews();
+        const { movieId, sortBy, order } = req.query;
+
+        const reviews = await reviewService.getAllReviews({
+            movieId: movieId as string | undefined,
+            sortBy: sortBy as string | undefined,
+            order: order as "asc" | "desc" | undefined,
+        });
  
         res.status(200).json({
             status: "success",
