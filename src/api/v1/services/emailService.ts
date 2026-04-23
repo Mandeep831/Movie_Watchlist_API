@@ -1,5 +1,14 @@
 import nodemailer from "nodemailer";
 
+// Create transporter once (better practice)
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
 /**
  * Sends an email using Nodemailer.
  */
@@ -9,19 +18,11 @@ export const sendEmail = async (
     text: string
 ): Promise<void> => {
 
-    // 🔹 check if env variables exist
+    // Check if env variables exist
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
         console.log("Email not configured. Skipping send.");
         return;
     }
-
-    const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-    });
 
     try {
         await transporter.sendMail({

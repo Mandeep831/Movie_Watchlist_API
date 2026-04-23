@@ -12,7 +12,7 @@ export const createReview = async (
  
         try {
             await sendEmail(
-                "test@example.com",
+                process.env.EMAIL_USER!,
                 "Review Added",
                 "Your review was added successfully."
             );
@@ -91,7 +91,7 @@ export const updateReview = async (
  
         try {
             await sendEmail(
-                "test@example.com",
+                process.env.EMAIL_USER!,
                 "Review Updated",
                 "Your review was updated successfully."
             );
