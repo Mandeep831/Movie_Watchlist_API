@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import * as movieService from "../services/movieService";
 import { sendEmail } from "../services/emailService";
+import { searchMoviesFromTmdb } from "../services/tmdbService";
  
 export const getAllMovies = async (req: Request, res: Response) => {
     try {
@@ -39,6 +40,32 @@ export const getMovieById = async (req: Request, res: Response) => {
         res.status(500).json({
             status: "error",
             message: "Failed to fetch movie",
+        });
+    }
+};
+ 
+export const searchTmdbMovies = async (req: Request, res: Response) => {
+    try {
+        const query = req.query.query as string;
+ 
+        if (!query || !query.trim()) {
+            res.status(400).json({
+                status: "error",
+                message: "Query parameter is required",
+            });
+            return;
+        }
+ 
+        const results = await searchMoviesFromTmdb(query);
+ 
+        res.status(200).json({
+            status: "success",
+            data: results,
+        });
+    } catch (error: unknown) {
+        res.status(500).json({
+            status: "error",
+            message: "Failed to search TMDB movies",
         });
     }
 };

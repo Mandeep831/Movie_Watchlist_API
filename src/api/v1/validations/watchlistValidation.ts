@@ -1,12 +1,8 @@
 import Joi from "joi";
- 
+
 export const watchlistSchemas = {
     create: {
         body: Joi.object({
-            userId: Joi.string().required().messages({
-                "any.required": 'Validation error: "userId" is required',
-                "string.empty": 'Validation error: "userId" cannot be empty',
-            }),
             movieId: Joi.string().required().messages({
                 "any.required": 'Validation error: "movieId" is required',
                 "string.empty": 'Validation error: "movieId" cannot be empty',
@@ -17,7 +13,7 @@ export const watchlistSchemas = {
             }),
         }),
     },
- 
+
     getById: {
         params: Joi.object({
             id: Joi.string().required().messages({
@@ -26,7 +22,7 @@ export const watchlistSchemas = {
             }),
         }),
     },
- 
+
     update: {
         params: Joi.object({
             id: Joi.string().required().messages({
@@ -35,14 +31,13 @@ export const watchlistSchemas = {
             }),
         }),
         body: Joi.object({
-            userId: Joi.string().optional(),
             movieId: Joi.string().optional(),
             status: Joi.string().optional().messages({
                 "string.empty": 'Validation error: "status" cannot be empty',
             }),
         }),
     },
- 
+
     delete: {
         params: Joi.object({
             id: Joi.string().required().messages({
@@ -52,4 +47,3 @@ export const watchlistSchemas = {
         }),
     },
 };
- 

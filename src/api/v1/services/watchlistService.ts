@@ -9,6 +9,10 @@ export const getAllWatchlists = async () => {
     return await watchlistRepository.getAllWatchlists();
 };
 
+export const getWatchlistById = async (id: string): Promise<any> => {
+    return await watchlistRepository.getWatchlistById(id);
+};
+
 export const updateWatchlist = async (
     id: string,
     watchlist: Partial<Watchlist>
