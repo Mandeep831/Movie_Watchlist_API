@@ -16,10 +16,24 @@ export const getReviewById = async (id: string): Promise<Review | null> => {
 export const updateReview = async (
   id: string,
   review: Partial<Review>
-): Promise<boolean> => {
-  return reviewRepository.updateReview(id, review);
+): Promise<Review | null> => {
+  const existing = await reviewRepository.getReviewById(id);
+
+  if (!existing) {
+    return null;
+  }
+
+  await reviewRepository.updateReview(id, review);
+
+  return reviewRepository.getReviewById(id);
 };
 
 export const deleteReview = async (id: string): Promise<boolean> => {
+  const existing = await reviewRepository.getReviewById(id);
+
+  if (!existing) {
+    return false;
+  }
+
   return reviewRepository.deleteReview(id);
 };
