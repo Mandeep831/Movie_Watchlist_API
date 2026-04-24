@@ -29,8 +29,13 @@ export const createReview = async (
         try {
             await sendEmail(
                 process.env.EMAIL_USER!,
-                "Review Added",
-                "Your review was added successfully."
+                "Review Created Successfully",
+                `Your review has been added successfully!.
+
+            Movie ID: ${review.movieId}
+            Rating: ${review.rating}
+
+            Thank You for sharing the feedback!`
             );
         } catch (error) {
             console.error("Email failed:", error);
@@ -46,7 +51,7 @@ export const createReview = async (
 };
 
 export const getAllReviews = async (
-    _req: Request,
+    req: Request,
     res: Response,
     next: NextFunction
 ): Promise<void> => {
@@ -129,7 +134,12 @@ export const updateReview = async (
             await sendEmail(
                 process.env.EMAIL_USER!,
                 "Review Updated",
-                "Your review was updated successfully."
+                `Your review has been updated successfully!
+
+            Update fields:
+            ${JSON.stringify(req.body, null, 2)}
+
+            Thanks for keeping your reviews up to date`
             );
         } catch (error) {
             console.error("Email failed:", error);

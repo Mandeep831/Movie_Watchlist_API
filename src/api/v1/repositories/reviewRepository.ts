@@ -3,6 +3,12 @@ import { Review } from "../models/reviewModel";
 
 const reviewCollection = db.collection("reviews");
 
+interface ReviewQueryOptions {
+  movieId?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
 export const createReview = async (review: Review): Promise<Review> => {
   const now = new Date().toISOString();
 
@@ -20,13 +26,38 @@ export const createReview = async (review: Review): Promise<Review> => {
   };
 };
 
-export const getAllReviews = async (): Promise<Review[]> => {
+export const getAllReviews = async (
+  options?: ReviewQueryOptions
+): Promise<Review[]> => {
   const snapshot = await reviewCollection.get();
 
-  return snapshot.docs.map((doc) => ({
+  let reviews = snapshot.docs.map((doc) => ({
     id: doc.id,
     ...(doc.data() as Omit<Review, "id">),
   }));
+
+  // Filter by movieId
+  if (options?.movieId) {
+    reviews = reviews.filter((review) => review.movieId === options.movieId);
+  }
+
+  // Sort by rating or createdAt
+  if (options?.sortBy === "rating" || options?.sortBy === "createdAt") {
+    reviews.sort((a, b) => {
+      const aValue = a[options.sortBy as keyof Review];
+      const bValue = b[options.sortBy as keyof Review];
+
+      if (aValue === undefined || bValue === undefined) return 0;
+
+      if (options.order === "desc") {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    });
+  }
+
+  return reviews;
 };
 
 export const getReviewById = async (id: string): Promise<Review | null> => {
