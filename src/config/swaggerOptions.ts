@@ -1,6 +1,6 @@
-import swaggerJSDoc from "swagger-jsdoc";
+import swaggerJsdoc from "swagger-jsdoc";
 
-const swaggerOptions: swaggerJSDoc.Options = {
+const swaggerOptions: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.0.0",
     info: {
@@ -10,11 +10,26 @@ const swaggerOptions: swaggerJSDoc.Options = {
     },
     servers: [
       {
-        url: process.env.SWAGGER_SERVER_URL || "http://localhost:3000/api/v1",
+        url: "http://localhost:3000/api/v1",
+        description: "Local server",
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [],
       },
     ],
   },
   apis: ["./src/api/v1/routes/*.ts"],
 };
 
-export default swaggerOptions;
+export const generateSwaggerSpec = () => swaggerJsdoc(swaggerOptions);
