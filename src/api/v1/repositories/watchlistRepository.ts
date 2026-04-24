@@ -31,6 +31,19 @@ export const getAllWatchlists = async () => {
     }));
 };
 
+export const getWatchlistById = async (id: string) => {
+    const doc = await db.collection(collectionName).doc(id).get();
+
+    if (!doc.exists) {
+        return null;
+    }
+
+    return {
+        id: doc.id,
+        ...doc.data(),
+    };
+};
+
 export const updateWatchlist = async (
     id: string,
     watchlist: Partial<Watchlist>
@@ -44,7 +57,7 @@ export const updateWatchlist = async (
 
     const updatedData = {
         ...watchlist,
-        updateAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(), 
     };
 
     await docRef.update(updatedData);
