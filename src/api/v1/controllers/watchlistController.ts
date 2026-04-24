@@ -1,11 +1,30 @@
 import { Request, Response } from "express";
 import * as watchlistService from "../services/watchlistService";
 import { sendEmail } from "../services/emailService";
- 
-export const createWatchlist = async (req: Request, res: Response) => {
+import { AuthenticatedRequest } from "../middleware/authenticate";
+
+export const createWatchlist = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
     try {
-        const watchlist = await watchlistService.createWatchlist(req.body);
- 
+        const userId = req.user?.uid;
+
+        if (!userId) {
+            res.status(401).json({
+                status: "error",
+                message: "Unauthorized",
+            });
+            return;
+        }
+
+        const watchlistData = {
+            ...req.body,
+            userId,
+        };
+
+        const watchlist = await watchlistService.createWatchlist(watchlistData);
+
         try {
             await sendEmail(
                 process.env.EMAIL_USER!,
@@ -15,7 +34,7 @@ export const createWatchlist = async (req: Request, res: Response) => {
         } catch (error) {
             console.error("Email failed:", error);
         }
- 
+
         res.status(201).json({
             status: "success",
             data: watchlist,
@@ -27,11 +46,11 @@ export const createWatchlist = async (req: Request, res: Response) => {
         });
     }
 };
- 
+
 export const getAllWatchlists = async (req: Request, res: Response) => {
     try {
         const watchlists = await watchlistService.getAllWatchlists();
- 
+
         res.status(200).json({
             status: "success",
             data: watchlists,
@@ -43,22 +62,49 @@ export const getAllWatchlists = async (req: Request, res: Response) => {
         });
     }
 };
- 
-export const updateWatchlist = async (req: Request, res: Response) => {
+
+export const updateWatchlist = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
     try {
-        const updatedWatchlist = await watchlistService.updateWatchlist(
-            req.params.id as string,
-            req.body
-        );
- 
-        if (!updatedWatchlist) {
+        const id = req.params.id as string;
+        const userId = req.user?.uid;
+
+        if (!userId) {
+            res.status(401).json({
+                status: "error",
+                message: "Unauthorized",
+            });
+            return;
+        }
+
+        const existingWatchlist = await watchlistService.getWatchlistById(id);
+
+        if (!existingWatchlist) {
             res.status(404).json({
                 status: "error",
                 message: "Watchlist not found",
             });
             return;
         }
- 
+
+        if (
+            existingWatchlist.userId !== userId &&
+            req.user?.role !== "admin"
+        ) {
+            res.status(403).json({
+                status: "error",
+                message: "Forbidden: You can only update your own watchlist",
+            });
+            return;
+        }
+
+        const updatedWatchlist = await watchlistService.updateWatchlist(
+            id,
+            req.body
+        );
+
         try {
             await sendEmail(
                 process.env.EMAIL_USER!,
@@ -68,7 +114,7 @@ export const updateWatchlist = async (req: Request, res: Response) => {
         } catch (error) {
             console.error("Email failed:", error);
         }
- 
+
         res.status(200).json({
             status: "success",
             data: updatedWatchlist,
@@ -80,21 +126,46 @@ export const updateWatchlist = async (req: Request, res: Response) => {
         });
     }
 };
- 
-export const deleteWatchlist = async (req: Request, res: Response) => {
+
+export const deleteWatchlist = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
     try {
-        const deleted = await watchlistService.deleteWatchlist(
-            req.params.id as string
-        );
- 
-        if (!deleted) {
+        const id = req.params.id as string;
+        const userId = req.user?.uid;
+
+        if (!userId) {
+            res.status(401).json({
+                status: "error",
+                message: "Unauthorized",
+            });
+            return;
+        }
+
+        const existingWatchlist = await watchlistService.getWatchlistById(id);
+
+        if (!existingWatchlist) {
             res.status(404).json({
                 status: "error",
                 message: "Watchlist not found",
             });
             return;
         }
- 
+
+        if (
+            existingWatchlist.userId !== userId &&
+            req.user?.role !== "admin"
+        ) {
+            res.status(403).json({
+                status: "error",
+                message: "Forbidden: You can only delete your own watchlist",
+            });
+            return;
+        }
+
+        await watchlistService.deleteWatchlist(id);
+
         res.status(200).json({
             status: "success",
             message: "Watchlist deleted successfully",
