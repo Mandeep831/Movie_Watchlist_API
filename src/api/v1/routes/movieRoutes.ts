@@ -4,16 +4,16 @@ import { authenticate } from "../middleware/authenticate";
 import { authorize } from "../middleware/authorize";
 import { validateRequest } from "../middleware/validateRequest";
 import { movieSchemas } from "../validations/movieValidation";
-
+ 
 const router = Router();
-
+ 
 /**
  * @swagger
  * tags:
  *   name: Movies
  *   description: Movie management endpoints
  */
-
+ 
 /**
  * @swagger
  * /movies:
@@ -25,7 +25,30 @@ const router = Router();
  *         description: Movies fetched successfully
  */
 router.get("/", movieController.getAllMovies);
-
+ 
+/**
+ * @swagger
+ * /movies/search-tmdb:
+ *   get:
+ *     summary: Search movies from TMDB by title
+ *     tags: [Movies]
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema:
+ *           type: string
+ *         example: Inception
+ *     responses:
+ *       200:
+ *         description: TMDB movies fetched successfully
+ *       400:
+ *         description: Missing query parameter
+ *       500:
+ *         description: Failed to search TMDB
+ */
+router.get("/search-tmdb", movieController.searchTmdbMovies);
+ 
 /**
  * @swagger
  * /movies/{id}:
@@ -51,7 +74,7 @@ router.get(
     validateRequest(movieSchemas.getById),
     movieController.getMovieById
 );
-
+ 
 /**
  * @swagger
  * /movies:
@@ -101,7 +124,7 @@ router.post(
     validateRequest(movieSchemas.create),
     movieController.createMovie
 );
-
+ 
 /**
  * @swagger
  * /movies/{id}:
@@ -154,7 +177,7 @@ router.put(
     validateRequest(movieSchemas.update),
     movieController.updateMovie
 );
-
+ 
 /**
  * @swagger
  * /movies/{id}:
@@ -188,5 +211,5 @@ router.delete(
     validateRequest(movieSchemas.delete),
     movieController.deleteMovie
 );
-
+ 
 export default router;

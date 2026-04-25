@@ -22,6 +22,8 @@ const router = Router();
  *     responses:
  *       200:
  *         description: Reviews fetched successfully
+ *       500:
+ *         description: Internal server error
  */
 router.get("/", reviewController.getAllReviews);
 
@@ -46,9 +48,9 @@ router.get("/", reviewController.getAllReviews);
  *         description: Review not found
  */
 router.get(
-    "/:id",
-    validateRequest(reviewSchemas.getById),
-    reviewController.getReviewById
+  "/:id",
+  validateRequest(reviewSchemas.getById),
+  reviewController.getReviewById
 );
 
 /**
@@ -65,15 +67,17 @@ router.get(
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - movieId
+ *               - rating
  *             properties:
- *               userId:
- *                 type: string
- *                 example: user001
  *               movieId:
  *                 type: string
  *                 example: movie001
  *               rating:
  *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
  *                 example: 5
  *               comment:
  *                 type: string
@@ -85,12 +89,14 @@ router.get(
  *         description: Validation error
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  */
 router.post(
-    "/",
-    authenticate,
-    validateRequest(reviewSchemas.create),
-    reviewController.createReview
+  "/",
+  authenticate,
+  validateRequest(reviewSchemas.create),
+  reviewController.createReview
 );
 
 /**
@@ -107,6 +113,21 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               rating:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *                 example: 4
+ *               comment:
+ *                 type: string
+ *                 example: Updated review
  *     responses:
  *       200:
  *         description: Review updated successfully
@@ -114,14 +135,16 @@ router.post(
  *         description: Validation error
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       404:
  *         description: Review not found
  */
 router.put(
-    "/:id",
-    authenticate,
-    validateRequest(reviewSchemas.update),
-    reviewController.updateReview
+  "/:id",
+  authenticate,
+  validateRequest(reviewSchemas.update),
+  reviewController.updateReview
 );
 
 /**
@@ -145,14 +168,16 @@ router.put(
  *         description: Validation error
  *       401:
  *         description: Unauthorized
+ *       403:
+ *         description: Forbidden
  *       404:
  *         description: Review not found
  */
 router.delete(
-    "/:id",
-    authenticate,
-    validateRequest(reviewSchemas.delete),
-    reviewController.deleteReview
+  "/:id",
+  authenticate,
+  validateRequest(reviewSchemas.delete),
+  reviewController.deleteReview
 );
 
 export default router;
